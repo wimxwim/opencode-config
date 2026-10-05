@@ -1,0 +1,15 @@
+{
+  "opencode": "1.18.34",
+  "snapshot_date": "2026-10-04",
+  "source": "~/.config/opencode (live config, sanitized)",
+  "agents": [
+    "build",
+    "sidekick",
+    "explore",
+    "research",
+    "design",
+    "reviewer",
+    "plan",
+    "vision"
+  ]
+}

@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  secret-scan:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for leaked secrets (fail on real matches)
+        run: |
+          set +e
+          matches=$(grep -rniE 'sk-nry|gho_|ghp_|bot[0-9]{8,}|AKIA|eyJ' . \
+            --exclude-dir=.git \
+            --exclude=ci.yml)
+          rc=$?
+          set -e
+          if [ -n "$matches" ]; then
+            echo "Potential secrets found:"
+            echo "$matches"
+            exit 1
+          fi
+          echo "OK: no secrets detected (ci.yml excluded; it holds this pattern itself)."
+
+  validate:
+    name: validate config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required files exist
+        run: |
+          for f in README.md AGENTS.md opencode.jsonc versions.json LICENSE \
+                   CHANGELOG.md .gitignore scripts/install.sh \
+                   agents/build.md agents/sidekick.md agents/explore.md \
+                   agents/research.md agents/design.md agents/reviewer.md \
+                   agents/plan.md agents/vision.md; do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+          echo "OK: all required files present."
+      - name: Validate JSON files
+        run: |
+          python3 -c "import json; json.load(open('versions.json'))"
+          echo "OK: versions.json is valid JSON."
